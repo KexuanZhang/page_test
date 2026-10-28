@@ -98,10 +98,23 @@ export function crack(strength = 1, delay = 0) {
   for (let i = 0; i < 2 + Math.round(s * 3); i++) play(audio.lo[(Math.random() * audio.lo.length) | 0], 0.12 + s * 0.26 * Math.random(), 0.8 + Math.random() * 0.6, delay + Math.random() * 0.05);
   audio.plays++;
 }
+// iPhone: audio may only start from the end of a tap (touchend / pointerup / click), not from touch-down, and the ring/silent
+// switch mutes web audio unless the page says it is media playback. So: ask for playback, and unlock on every tap end until running.
+function unlock() {
+  initAudio();
+  const ctx = audio.ctx; if (!ctx) return;
+  if (ctx.state !== 'running') ctx.resume?.();
+  if (!audio.primed) { audio.primed = true; const b = ctx.createBuffer(1, 1, ctx.sampleRate), s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(0); }   // a silent sample, the classic iOS unlock
+}
+if (typeof window !== 'undefined' && window.addEventListener) {
+  for (const ev of ['touchend', 'pointerup', 'click', 'keydown']) window.addEventListener(ev, unlock, { capture: true, passive: true });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && audio.ctx && audio.ctx.state !== 'running') audio.ctx.resume?.(); });
+}
 export async function initAudio() {
-  if (audio.ctx) { audio.ctx.resume?.(); return; }
+  if (audio.ctx) { if (audio.ctx.state !== 'running') audio.ctx.resume?.(); return; }
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* older Safari */ }   // play even with the silent switch on
   const ctx = audio.ctx = new AC();
   audio.master = ctx.createGain(); audio.master.gain.value = 0.9;
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 6; comp.attack.value = 0.002; comp.release.value = 0.1;
