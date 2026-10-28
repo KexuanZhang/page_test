@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#dedbd4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Squish Lab">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Squeeze, pull and pop: a watermelon, a jelly, a mochi, bubble wrap and a chocolate crisp bun.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Squish Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  :root { --bg:#dedbd4; --bg2:#d3cfc6; --ink:#1d1b18; --muted:#7b776d; --line:#c6c2b8; --card:rgba(240,238,232,.84);
+    --serif:"Instrument Serif","Newsreader",Georgia,serif; --text:"Newsreader",Georgia,serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; -webkit-user-select:none; }
+  [hidden] { display:none !important; }
+  html, body { margin:0; height:100%; overflow:hidden; overscroll-behavior:none; background:var(--bg); color:var(--ink); font:14px/1.35 var(--text); }
+  body { background:radial-gradient(110% 90% at 48% 38%, #e7e4dd 0%, var(--bg) 55%, var(--bg2) 100%); }
+  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  .ui { position:fixed; pointer-events:none; }
+  .cap { font:400 9.5px/1.3 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  #title { left:max(24px, env(safe-area-inset-left, 0px)); top:calc(env(safe-area-inset-top, 0px) + 66px); }
+  #title h1 { margin:6px 0 10px; font:italic 400 clamp(40px, 7.2vw, 78px)/.92 var(--serif); letter-spacing:-.01em; }
+  #title h1 span { display:block; padding-left:.55em; }
+  #title p { margin:0; font:italic 400 13px/1.45 var(--text); color:var(--muted); }
+  #tabs { pointer-events:auto; left:50%; transform:translateX(-50%); top:calc(env(safe-area-inset-top, 0px) + 14px); display:flex; gap:2px; padding:3px; border:1px solid var(--line); border-radius:999px; background:var(--card); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); z-index:3; max-width:calc(100vw - 24px); }
+  #tabs button { font:400 13px var(--text); padding:7px 16px; border:0; border-radius:999px; background:transparent; color:var(--ink); cursor:pointer; white-space:nowrap; }
+  #tabs button.on { background:var(--ink); color:var(--bg); }
+  #hud { right:max(24px, env(safe-area-inset-right, 0px)); top:calc(env(safe-area-inset-top, 0px) + 56px); text-align:right; }
+  #panel { pointer-events:auto; right:max(24px, env(safe-area-inset-right, 0px)); top:calc(env(safe-area-inset-top, 0px) + 82px); width:236px; padding:14px 16px 16px;
+    background:var(--card); border:1px solid var(--line); border-radius:3px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  #panel .head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+  #panel .head i { font:italic 400 12px var(--text); color:var(--muted); letter-spacing:0; text-transform:none; }
+  .sec { margin-top:13px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; }
+  .row output { font:400 10px var(--mono); }
+  .ends { display:flex; justify-content:space-between; font:italic 400 10.5px var(--text); color:var(--muted); margin-top:1px; }
+  input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:22px; margin:2px 0 0; background:transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height:1px; background:var(--ink); }
+  input[type=range]::-moz-range-track { height:1px; background:var(--ink); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:11px; height:11px; margin-top:-5px; border-radius:50%; background:var(--bg); border:1px solid var(--ink); }
+  input[type=range]::-moz-range-thumb { width:10px; height:10px; border-radius:50%; background:var(--bg); border:1px solid var(--ink); }
+  .vars { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:6px; }
+  .var { padding:5px 4px 4px; border:1px solid var(--line); background:transparent; text-align:center; cursor:pointer; color:var(--ink); }
+  .var.on { border-color:var(--ink); background:rgba(255,255,255,.4); }
+  .var b { display:block; height:15px; margin-bottom:3px; }
+  .var span { font:italic 400 10.5px var(--text); }
+  .btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+  button.t { font:400 11.5px var(--text); padding:6px 4px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; border-radius:1px; }
+  button.t:active { background:var(--ink); color:var(--bg); }
+  button.t.strong { background:var(--ink); color:var(--bg); }
+  button.wide { grid-column:1 / -1; }
+  label.chk { display:inline-flex; align-items:center; gap:6px; font:400 11px var(--text); margin:9px 14px 0 0; }
+  label.chk input { accent-color:var(--ink); }
+  #handle { left:max(24px, env(safe-area-inset-left, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 22px); width:min(300px, 40vw); }
+  #handle p { margin:4px 0 12px; font:italic 400 11.5px/1.45 var(--text); color:#4d4a43; }
+  .stats { display:flex; gap:22px; border-top:1px solid var(--line); padding-top:8px; }
+  .stats div span { display:block; font:400 9px var(--mono); letter-spacing:.14em; color:var(--muted); }
+  .stats div em { font:400 14px var(--mono); font-style:normal; }
+  .stats div small { font:400 9px var(--mono); color:var(--muted); margin-left:3px; }
+  #hint { left:0; right:0; bottom:calc(env(safe-area-inset-bottom, 0px) + 28px); text-align:center; font:italic 400 15px var(--text); color:#4d4a43; transition:opacity .6s; padding:0 24px; }
+  #hint.gone { opacity:0; }
+  #loading { position:fixed; inset:0; display:grid; place-items:center; font:italic 400 18px var(--serif); color:var(--muted); background:var(--bg); z-index:5; }
+  #sheet { display:none; }
+  @media (max-width:760px) {
+    #tabs { top:calc(env(safe-area-inset-top, 0px) + 10px); }
+    #tabs button { padding:7px 9px; font-size:12px; }
+    #title { left:max(18px, env(safe-area-inset-left, 0px)); top:calc(env(safe-area-inset-top, 0px) + 58px); }
+    #title h1 { font-size:36px; margin:4px 0 0; }
+    #title p, #handle p, #hud { display:none; }
+    #hint { bottom:calc(env(safe-area-inset-bottom, 0px) + 150px); font-size:14px; }
+    #handle { left:0; right:0; width:auto; bottom:calc(env(safe-area-inset-bottom, 0px) + 112px); padding:0 max(18px, env(safe-area-inset-left, 0px)); }
+    #handle .cap { display:none; }
+    .stats { border:0; padding:0; }
+    #panel { left:max(12px, env(safe-area-inset-left, 0px)); right:max(12px, env(safe-area-inset-right, 0px)); top:auto; bottom:calc(env(safe-area-inset-bottom, 0px) + 10px); width:auto; padding:10px 14px; }
+    #panel .more { display:none; }
+    body.open #panel .more { display:block; }
+    body.open #panel { max-height:62vh; overflow:auto; }
+    #sheet { display:inline; pointer-events:auto; font:400 11px var(--mono); background:none; border:0; color:var(--ink); letter-spacing:.1em; }
+    .quick { display:flex; gap:6px; margin-top:0; }
+    body.open .quick { display:none; }
+  }
+  @media (min-width:761px) { .quick { display:none; } }
+</style>
+</head>
+<body data-item="watermelon">
+<canvas id="c"></canvas>
+<div id="loading">Preparing the specimen…</div>
+<nav class="ui" id="tabs" aria-label="Choose a specimen">
+  <button id="tab-watermelon" type="button">Watermelon</button><button id="tab-jelly" type="button">Jelly</button><button id="tab-mochi" type="button">Mochi</button><button id="tab-bubble" type="button">Bubbles</button><button id="tab-choc" type="button">Crisp</button>
+</nav>
+<div class="ui" id="title"><div class="cap" id="tno">Material studies / No. 056</div><h1><span style="padding:0" id="t1">Cut</span><span id="t2">Watermelon.</span></h1><p id="tsub"></p></div>
+<div class="ui cap" id="hud">WEBGL2 · LIVE</div>
+<div id="hint" class="ui"></div>
+<aside class="ui" id="panel">
+  <div class="head"><span class="cap">The specimen</span><span class="cap"><i>fig. 56</i> <button id="sheet" type="button">CONTROLS ▾</button></span></div>
+  <div class="quick"><button class="t strong" id="flip2" type="button" style="flex:1">Flip</button><button class="t" id="reset2" type="button" style="flex:1">Reset</button></div>
+  <div class="more">
+    <div class="cap">Variety</div>
+    <div class="vars" id="vars"></div>
+    <div class="sec"><div class="row"><span class="cap">Firmness</span><output id="firmv">0.50</output></div>
+      <input id="firm" type="range" min="0" max="1" step="0.01" value="0.5"><div class="ends"><span id="e1a"></span><span id="e1b"></span></div></div>
+    <div class="sec"><div class="row"><span class="cap">Internal damping</span><output id="dampv">0.30</output></div>
+      <input id="damp" type="range" min="0" max="1" step="0.01" value="0.3"><div class="ends"><span id="e2a"></span><span id="e2b"></span></div></div>
+    <div class="btns"><button class="t strong" id="flip" type="button">Flip over</button><button class="t strong" id="refill" type="button" hidden>Refill bubbles</button><button class="t" id="nudge" type="button">Give it a nudge</button><button class="t" id="reset" type="button">Reset</button></div>
+    <label class="chk"><input id="slow" type="checkbox"> ¼ speed</label><label class="chk"><input id="mesh" type="checkbox"> Show mesh</label><label class="chk"><input id="sound" type="checkbox" checked> Sound</label>
+    <div class="btns"><button class="t wide" id="pause" type="button">Pause</button></div>
+  </div>
+</aside>
+<div class="ui" id="handle"><div class="cap">Handle</div><p id="handle-text"></p>
+  <div class="stats"><div><span>MASS</span><em id="st-mass"></em></div><div><span>VOLUME</span><em id="st-vol">100.0</em><small>% of rest</small></div><div><span id="st3-label">GRIP</span><em id="st-grip">100</em><small id="st3-unit">% holding</small></div></div></div>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }</script>
+<script type="module" src="main.js"></script>
+<script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
+</body>
+</html>
