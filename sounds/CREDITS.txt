@@ -1,0 +1,6 @@
+Squish sound effects by EZduzziteh, CC0: https://opengameart.org/content/squish-sounds-effects
+Pop sounds by cogitollc, CC0: https://opengameart.org/content/pop-sounds
+Bubbles pop by farfadet46, CC0: https://opengameart.org/content/bubbles-pop
+Apple bite by antumdeluge (from freesound 333825), CC0: https://opengameart.org/content/apple-bite  -> bite_apple.mp3
+Water / splash / slime SFX by rubberduck, CC0: https://opengameart.org/content/40-cc0-water-splash-slime-sfx  -> wet_*.mp3, drip_*.mp3
+Wet squish, slurp impacts by qubodup (Independent.nu ljudbank), CC0: https://opengameart.org/content/8-wet-squish-slurp-impacts  -> splat_*.mp3
