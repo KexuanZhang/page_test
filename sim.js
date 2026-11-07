@@ -294,7 +294,7 @@ export class Sim {
       let gx = 0, gz = 0, gn = 0; if (grabbed) for (const g of this.grabs.values()) { gx += g.hit[0]; gz += g.hit[2]; gn++; } if (gn) { gx /= gn; gz /= gn; }
       for (const i of this.tnodes) {
         const k = i * 3;
-        if (!grabbed) { if (lt[i] !== 1 && pos[k + 1] < this.floorY + 0.05 + 0.5 * this.L.c && Math.hypot(vel[k], vel[k + 1], vel[k + 2]) < 0.6) { an[k] = pos[k]; an[k + 1] = pos[k + 1]; an[k + 2] = pos[k + 2]; lt[i] = 1; } continue; }
+        if (!grabbed) { if (lt[i] !== 1 && pos[k + 1] < this.floorY + 0.05 + 0.5 * this.L.c && Math.hypot(vel[k], vel[k + 1], vel[k + 2]) < 0.6) { an[k] = pos[k]; an[k + 1] = pos[k + 1]; an[k + 2] = pos[k + 2]; lt[i] = 1; } if (!T.always) continue; }   // `always`: planted feet hold at rest too
         if (!lt[i]) continue;
         const dx = an[k] - pos[k], dy = an[k + 1] - pos[k + 1], dz = an[k + 2] - pos[k + 2], d = Math.hypot(dx, dy, dz);
         const near = Math.min(1, Math.hypot(an[k] - gx, an[k + 2] - gz) / 1.1), thr = T.len * (0.5 + 0.5 * near);

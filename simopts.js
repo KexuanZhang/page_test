@@ -21,6 +21,12 @@ export const SIM = {
     plastic: { region: 1, yield: 0.03, rate: 0.5, recover: 0, maxDev: 1.2 },
     mat: (k, rd, rh) => { rd[0] = rd[1] = rd[2] = 4 * k; rh[0] = rh[1] = rh[2] = 1 * k ** 0.6; },
   },
+  frog: {
+    // moulded vinyl: firm and springy, holds its volume, always springs back (no plasticity); legs and feet are stiffer.
+    // A tall toy on small feet: strong resting drag so it stands instead of slowly rolling over
+    gravity: -20, hold: [6, 6, 6], strainRegion: 2, friction: 1, drag: 4, tether: { len: 1.2, k: 0.6, layers: 1.1, thread: 2, always: true },   // the feet stay planted
+    mat: (k, rd, rh) => { rd[2] = 14 * k; rh[2] = 0.15 * k ** 0.6; rd[1] = 0.015 * k; rh[1] = 0.01 * k ** 0.6; rd[0] = rd[2]; rh[0] = rh[2]; },
+  },
   choc: {
     // a hard thin shell over a bread-like crumb: the crumb crushes and stays crushed (very little springback)
     gravity: -20, hold: [6, 6, 6], strainRegion: 2, friction: 0.95, drag: 2,
