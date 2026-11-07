@@ -2,6 +2,7 @@
 //   juicy     watermelon  recorded CC0 apple bite, wet squishes, drips and splats, driven by how fast the flesh deforms
 //   jelly     red jelly   CC0 squish clips on touch, a synthesised spring "duang" on every wobble, a splat on landing
 //   sticky    mochi       low wet clicks and "blup"s that follow the stretch, a soft release when it peels off the plate
+//   squeaky   milk frog   recorded rubber-toy squeaks on squeeze and release, a soft thump on landing
 //   pop       bubbles     a bank of synthesised plastic pops (sharp crack + air thump + crinkle), plus quiet CC0 body
 export const audio = { juice: [], tacky: [], cracks: [], ctx: null, on: true, buffers: {}, last: {}, plays: 0, grains: 0, hi: [], lo: [], pops: [], intensity: 0, pending: [] };
 
@@ -238,6 +239,12 @@ export function soundFrame(mode, now, dt, env) {
     for (const f of fingers) if (f.speed > 1.4 && now - f.lastSound > 200) { f.lastSound = now; playSound('wet', 0.25 + Math.min(0.5, f.speed / 10), 0.85 + Math.random() * 0.35); }
     if (I > 0.12 && Math.random() < I * 1.6 * dt) playSound('drip', 0.08 + Math.min(0.2, I * 0.15), 1.1 + Math.random() * 0.8);
     if (impact > 1.8 && now - st.impactAt > 220) { st.impactAt = now; playSound('splat', 0.3 + Math.min(0.6, impact / 7), 0.85 + Math.random() * 0.2); }
+  } else if (mode === 'squeaky') {
+    // a vinyl squeaky toy (recorded squeaks): a squeak as it is squeezed, harder and faster squeezes squeak louder and higher;
+    // a limb yanked quickly squeaks too; dropping it gives a soft rubber thump
+    if (I > 0.22 && I - st.prevI > 0.06 && now - st.crunchAt > 200) { st.crunchAt = now; playSound('squeak', 0.35 + Math.min(0.6, I * 0.5), 0.82 + Math.min(0.45, I * 0.3) + Math.random() * 0.08); }
+    for (const f of fingers) if (f.speed > 2.2 && now - f.lastSound > 320) { f.lastSound = now; playSound('squeak', 0.22 + Math.min(0.3, f.speed / 20), 1.05 + Math.random() * 0.2); }
+    if (impact > 1.8 && now - st.impactAt > 220) { st.impactAt = now; playSound('impact', 0.25 + Math.min(0.5, impact / 8), 0.7, 1500); }
   } else if (mode === 'sticky') {
     // sticky and chewy: wet squishes, bright little blups as the dough stretches, a tacky peel each time it lets go of the plate
     for (const f of fingers) if (f.speed > 0.8 && now - f.lastSound > 180) { f.lastSound = now; playSound('squish', 0.2 + Math.min(0.4, f.speed / 9), 0.8, 3200); }

@@ -3,7 +3,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Sim } from './sim.js';
 import { SIM } from './simopts.js';
 import { audio, initAudio, playSound, soundFrame, resetSoundState, pop, crunch, crack } from './audio.js';
-import { SKIN_HEAD, FRAG_HEAD, WATERMELON, JELLY, MOCHI, BUBBLE, CRUMB, SLAB_VERT, SLAB_FRAG } from './shaders.js';
+import { SKIN_HEAD, FRAG_HEAD, WATERMELON, JELLY, MOCHI, BUBBLE, CRUMB, SLAB_VERT, SLAB_FRAG, RUBBER } from './shaders.js';
 import { Pieces } from './pieces.js';
 import { Crumb } from './crumb.js';
 import { CrumbSurface } from './crumbsurf.js';
@@ -50,6 +50,7 @@ const U = {                                  // shared uniforms, filled in by ea
   uNodes: { value: nodeTex },
   uStripeA: { value: new THREE.Color(0x0f3d1b) }, uStripeB: { value: new THREE.Color(0x5aa043) }, uSeeds: { value: 1 },
   uBase: { value: new THREE.Color(0xe5142f) }, uDeep: { value: new THREE.Color(0x7a0716) },
+  uSkin: { value: new THREE.Color(0xf7c834) }, uBelly: { value: new THREE.Color(0xf3dfa8) }, uLimb: { value: new THREE.Color(0x6e6a2e) },
   uDough: { value: new THREE.Color(0xf6f2ea) }, uBean: { value: new THREE.Color(0x5a1f1c) },
   uTint: { value: new THREE.Color(0xdff3ff) }, uShell: { value: new THREE.Color(0x1e120c) }, uBub: { value: null }, uGrid: { value: new THREE.Vector4() }, uBR: { value: new THREE.Vector2() }, uDim: { value: new THREE.Vector2() }, uCS: { value: 0.05 }, uStk: { value: new THREE.Vector2(0.016, 0.075) }, uOff: { value: Array.from({ length: 6 }, () => new THREE.Vector3()) },
 };
@@ -130,6 +131,16 @@ const ITEMS = {
     stage: { color: 0x34353b, r: 1.7, rough: 0.6 },
   },
 };
+ITEMS.frog = {
+  label: 'Frog', title: ['Milk', 'Frog.'], no: '061', sub: 'A squeaky vinyl toy.<br>Squeeze it and it squeaks, let go and it springs back.', mode: 'squeaky', recipe: RUBBER,
+  hint: 'Squeeze the belly, pull an arm or a foot. It squeaks and bounces back.', handle: 'A rubber toy of the milk frog. Press it and the vinyl dents and squeaks; let go and the air rushes back in. Pinch with two fingers to squash it, pull an arm or a leg and it stretches and snaps back.',
+  mass: '≈60<small>g</small>', ends: [['squishy', 'firm'], ['bouncy', 'dead']], flip: false, grab: 0.36, cam: { r: 6.6, half: 1.2, target: [0, 1.0, 0], phi: 1.4 }, press: 0.3,
+  varieties: { yellow: { name: 'Yellow', css: 'linear-gradient(#f6cf45,#e0a91c)', skin: 0xf7c834, belly: 0xf3dfa6, limb: 0x625e26 }, pink: { name: 'Pink', css: 'linear-gradient(#f8b8c6,#e98ba2)', skin: 0xf3a5b8, belly: 0xfbe4e7, limb: 0x8a4f5a },
+    mint: { name: 'Mint', css: 'linear-gradient(#b6e6c2,#86c99a)', skin: 0xa6dbb3, belly: 0xe6f4e2, limb: 0x4e6e4a } },
+  paint(v, d, geo, V) { const n = d.man.count, col = geo.attributes.color.array, glow = geo.attributes.aGlow.array, cr = d.A('a2'); for (let i = 0; i < n; i++) { col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 1; glow[i] = cr[i] / 255; } U.uSkin.value.set(V.skin); U.uBelly.value.set(V.belly); U.uLimb.value.set(V.limb); },
+  matOpts: { roughness: 0.45, clearcoat: 0.35, clearcoatRoughness: 0.32 },
+  stage: { color: 0xf1eee8, r: 1.5, rough: 0.4 },
+};
 ITEMS.choc = {
   label: 'Crisp', title: ['Crisp', 'Chocolate.'], no: '060', sub: 'A hard shell with nuts, a soft cake inside.<br>Squeeze until it snaps.', mode: 'crisp', recipe: CRUMB,
   hint: 'Press or pinch to crack the shell. Put two fingers on it and pull them apart to tear it open.', handle: 'A hard chocolate shell with nuts, over a dry, crumbly sponge. Press and the shell cracks along lines while the cake gives way and stays crushed. Two fingers pulled apart tear the cake open; the shell stays stuck to the pieces it sits on. Reset gives you a new one.',
@@ -139,7 +150,7 @@ ITEMS.choc = {
   matOpts: { roughness: 0.95, clearcoat: 0, clearcoatRoughness: 0.4 }, engine: 'crumb', pieceOpts: { sScale: 2.5, grains: 20, tip: 0.5 },
   stage: { color: 0xece7de, r: 1.9, rough: 0.35 },
 };
-const ORDER = ['watermelon', 'jelly', 'mochi', 'bubble', 'choc'];
+const ORDER = ['watermelon', 'jelly', 'mochi', 'bubble', 'choc', 'frog'];
 const dataCache = {};
 async function loadData(id) {
   if (dataCache[id]) return dataCache[id];
@@ -429,6 +440,7 @@ async function showItem(id, variety) {
   item = ITEMS[id]; data = nextData;
   document.body.dataset.item = id;
   // device probe, once: pick the lattice that fits this phone
+  if (!levelName) { const forced = new URLSearchParams(location.search).get('lvl'); if (forced === 'fine' || forced === 'mid' || forced === 'coarse') levelName = forced; }   // ?lvl= for testing
   if (!levelName) {
     const probeSim = new Sim(data.level('mid'), SIM[id]); const h = 1 / 60 / 6;
     for (let i = 0; i < 12; i++) probeSim.step(h);
@@ -441,11 +453,11 @@ async function showItem(id, variety) {
     level = { name: tier, c: T.s, extra: { plates: true, n: data.man.pieces }, pick: { n: sim.N, group: new Uint8Array(sim.N) } }; substeps = 1;
   } else {
     if (substeps === 1) substeps = levelName === 'fine' ? 8 : 6;
-    level = data.level(levelName);
+    level = data.level(id === 'frog' ? (levelName === 'coarse' ? 'coarse' : 'mid') : levelName);   // the tall frog on small feet buckles on the finest lattice
     sim = new Sim(level, SIM[id]);
   }
   pickBuf = new Float32Array(level.pick.n * 3);
-  setFirm(0.5); setDamp(id === 'jelly' ? 0.12 : id === 'mochi' ? 0.8 : id === 'bubble' ? 0.85 : 0.3);
+  setFirm(0.5); setDamp(id === 'jelly' ? 0.12 : id === 'frog' ? 0.2 : id === 'mochi' ? 0.8 : id === 'bubble' ? 0.85 : 0.3);
   curVar = variety && item.varieties[variety] ? variety : Object.keys(item.varieties)[0];
   if (item.engine === 'crumb') buildCrumbMesh(); else buildFruit(level); if (item.pieces) buildPieces(); setStage(item.stage); for (const im of shardMeshes) { im.visible = !!item.shards; im.count = 0; } sh.n = 0; crumbs.visible = !!item.shards; crumbs.count = 0; cr.n = 0; if (item.shards) shardMat.color.copy(U.uShell.value);
   if (id === 'bubble') setupBubbles();
@@ -491,6 +503,7 @@ canvas.addEventListener('pointerdown', (e) => {
     const nrmv = camera.getWorldDirection(new THREE.Vector3());
     ptrs.set(e.pointerId, { grab, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(nrmv, new THREE.Vector3(...hit.p)), hit: new THREE.Vector3(...hit.p), last: new THREE.Vector3(...hit.p), speed: 0, lastSound: 0, startX: e.clientX, startY: e.clientY, seen: new Set() });
     if (bubbles) { const b = rayBubble(); const pp = ptrs.get(e.pointerId); if (b >= 0 && popBubble(b, 1, 2)) { pp.seen.add(b); pp.hb = b; pp.hAt = performance.now(); } }
+    else if (item.mode === 'squeaky') { playSound('squeak', 0.32, 0.85 + Math.random() * 0.1); if (navigator.vibrate) navigator.vibrate(8); }
     else { playSound('squish', item.mode === 'sticky' ? 0.25 : 0.35, item.mode === 'sticky' ? 0.55 : 0.8, item.mode === 'sticky' ? 2800 : 0); if (navigator.vibrate) navigator.vibrate(8); }
     $('hint').classList.add('gone');
   } else {
@@ -513,7 +526,8 @@ canvas.addEventListener('pointermove', (e) => {
 });
 const release = (e) => {
   const p = ptrs.get(e.pointerId);
-  if (p) { const g = p.grab; if (!bubbles && Math.hypot(g.finger[0] - g.hit[0], g.finger[1] - g.hit[1], g.finger[2] - g.hit[2]) > 0.3) playSound('release', 0.6, item.mode === 'sticky' ? 0.5 : 0.7, item.mode === 'sticky' ? 3000 : 0); sim.endGrab(e.pointerId); ptrs.delete(e.pointerId); }
+  if (p) { const g = p.grab; if (item.mode === 'squeaky') { if (Math.hypot(g.finger[0] - g.hit[0], g.finger[1] - g.hit[1], g.finger[2] - g.hit[2]) > 0.08) playSound('squeak', 0.4, 1.3 + Math.random() * 0.15); }   // the air rushing back in
+    else if (!bubbles && Math.hypot(g.finger[0] - g.hit[0], g.finger[1] - g.hit[1], g.finger[2] - g.hit[2]) > 0.3) playSound('release', 0.6, item.mode === 'sticky' ? 0.5 : 0.7, item.mode === 'sticky' ? 3000 : 0); sim.endGrab(e.pointerId); ptrs.delete(e.pointerId); }
   if (orbiting && orbiting.id === e.pointerId) orbiting = null;
 };
 canvas.addEventListener('pointerup', release); canvas.addEventListener('pointercancel', release);

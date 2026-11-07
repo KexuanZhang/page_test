@@ -6,5 +6,6 @@
   "bite": ["bite_apple.mp3"],
   "wet": ["wet_01.mp3", "wet_02.mp3", "wet_04.mp3", "wet_05.mp3", "wet_07.mp3", "wet_08.mp3", "wet_09.mp3", "wet_11.mp3", "wet_13.mp3", "wet_15.mp3"],
   "splat": ["splat_03.mp3", "splat_04.mp3", "splat_07.mp3", "splat_08.mp3"],
-  "drip": ["drip_01.mp3", "drip_03.mp3"]
+  "drip": ["drip_01.mp3", "drip_03.mp3"],
+  "squeak": ["squeak_1.mp3", "squeak_2.mp3", "squeak_3.mp3"]
 }
