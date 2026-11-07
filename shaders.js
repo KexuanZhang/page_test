@@ -97,35 +97,26 @@ export const JELLY = {
 export const RUBBER = {
   uniforms: { uSkin: null, uBelly: null, uLimb: null },
   decl: `uniform vec3 uSkin; uniform vec3 uBelly; uniform vec3 uLimb;`,
-  // everything below comes from the shape fitted to the reference picture (shapes/frog_params.js)
+  // the marks come from the front reference view (shapes/frog_tables.js), painted as seen from the front
   color: `
-    vec3 p = vRest; float ax = abs(p.x);
-    float limb = clamp(vRegion / 255.0, 0.0, 1.0);                       // olive hands, feet and shins, baked smoothly per vertex
-    float be = pow(p.x / 0.33, 2.0) + pow((p.y - 1.08) / 0.27, 2.0);
-    float belly = (1.0 - smoothstep(0.9, 1.05, be)) * smoothstep(0.13, 0.17, p.z) * (1.0 - limb);
-    // smooth satin yellow, warmer and a touch more orange lower down
-    vec3 skin = uSkin * mix(vec3(0.93, 0.83, 0.72), vec3(1.03, 1.03, 1.02), smoothstep(0.2, 1.7, p.y));
-    vec3 col = mix(skin, uBelly, belly * 0.95);
-    col = mix(col, uLimb * mix(0.85, 1.05, smoothstep(0.0, 0.2, p.y)), limb);
-    // eyes: green ring, big black pupil, a white glint
-    float eye = 0.0, pupil = 0.0, glint = 0.0;
-    for (int k = 0; k < 2; k++) {
-      vec3 e = vec3(k == 0 ? -0.185 : 0.185, 1.64, 0.225), f = normalize(e - vec3(0.0, 1.58, 0.1147)), q = p - e;
-      float along = dot(q, f), t = length(q - f * along), front = step(-0.01, along);
-      eye = max(eye, (1.0 - smoothstep(0.07, 0.076, t)) * front);
-      pupil = max(pupil, (1.0 - smoothstep(0.037, 0.041, t)) * front);
-      vec3 side = normalize(cross(f, vec3(0.0, 1.0, 0.0))), up = cross(side, f);
-      glint = max(glint, (1.0 - smoothstep(0.006, 0.009, length(q - f * along - (up * 0.013 + side * (k == 0 ? 0.008 : -0.008))))) * front);
-    }
-    col = mix(col, vec3(0.45, 0.62, 0.25), eye); col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.96), glint * pupil);
-    // mouth: a short thin dark line on the front of the face
-    float mouth = (1.0 - smoothstep(0.003, 0.006, abs(p.y - (1.575 - 0.25 * p.x * p.x)))) * smoothstep(0.24, 0.27, p.z) * (1.0 - smoothstep(0.09, 0.12, ax));
-    col = mix(col, vec3(0.1, 0.07, 0.03), mouth);
-    col *= 1.0 - 0.55 * vGlow;                                            // the fold where an arm lies on the body, a hand on the belly
+    vec3 p = vRest; float ax = abs(p.x), front = smoothstep(-0.02, 0.06, p.z) * step(0.3, vRestN.z + 0.35);
+    float limb = clamp(vRegion / 255.0, 0.0, 1.0);
+    float be = pow(p.x / 0.3842, 2.0) + pow((p.y - 1.0492) / 0.2787, 2.0);
+    float belly = (1.0 - smoothstep(0.93, 1.03, be)) * front * (1.0 - limb);
+    vec3 skin = uSkin * mix(vec3(0.97, 0.9, 0.82), vec3(1.02, 1.02, 1.0), smoothstep(0.15, 1.6, p.y));
+    vec3 col = mix(skin, uBelly, belly);
+    col = mix(col, uLimb * mix(0.82, 1.04, smoothstep(0.0, 0.2, p.y)), limb);
+    float ed = length(vec2(ax - 0.1161, p.y - 1.7438)), eyeF = step(0.0, p.z) * smoothstep(0.0, 0.08, p.z);
+    float eye = (1.0 - smoothstep(0.0570 - 0.003, 0.0570 + 0.002, ed)) * eyeF, pupil = (1.0 - smoothstep(0.0338 - 0.003, 0.0338 + 0.002, ed)) * eyeF;
+    float glint = (1.0 - smoothstep(0.004, 0.007, length(vec2(ax - 0.1161 + sign(p.x) * 0.0 + 0.008, p.y - 1.7438 - 0.009)))) * pupil;
+    col = mix(col, vec3(0.36, 0.54, 0.22), eye); col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.95), glint);
+    float my = 1.6509 + 0.0127 * pow(p.x / 0.0739, 2.0);
+    float mouth = (1.0 - smoothstep(0.0028, 0.0055, abs(p.y - my))) * step(0.05, p.z) * (1.0 - smoothstep(0.0739 - 0.01, 0.0739, ax));
+    col = mix(col, vec3(0.14, 0.08, 0.03), mouth);
+    col *= 1.0 - 0.55 * vGlow;
     diffuseColor.rgb = col;`,
-  rough: `roughnessFactor = mix(mix(0.5, 0.62, limb), 0.15, eye);`,
+  rough: `roughnessFactor = mix(mix(0.48, 0.6, limb), 0.12, eye);`,
   normal: ``,
-  // a soft warm glow through the vinyl at grazing angles, so it reads as smooth rubber rather than plastic
   emissive: `float nv = clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0);
     totalEmissiveRadiance += diffuseColor.rgb * (0.06 + 0.1 * pow(1.0 - nv, 2.0)) * (1.0 - 0.6 * limb) * (1.0 - eye) * (1.0 - vGlow);`,
   clearcoat: `material.clearcoat = mix(0.25, 0.9, eye); material.clearcoatRoughness = mix(0.4, 0.06, eye);`,

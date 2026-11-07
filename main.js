@@ -50,7 +50,7 @@ const U = {                                  // shared uniforms, filled in by ea
   uNodes: { value: nodeTex },
   uStripeA: { value: new THREE.Color(0x0f3d1b) }, uStripeB: { value: new THREE.Color(0x5aa043) }, uSeeds: { value: 1 },
   uBase: { value: new THREE.Color(0xe5142f) }, uDeep: { value: new THREE.Color(0x7a0716) },
-  uSkin: { value: new THREE.Color(0xf7c834) }, uBelly: { value: new THREE.Color(0xf3dfa8) }, uLimb: { value: new THREE.Color(0x6e6a2e) },
+  uSkin: { value: new THREE.Color(0xfad04a) }, uBelly: { value: new THREE.Color(0xf3dfa8) }, uLimb: { value: new THREE.Color(0x6e6a2e) },
   uDough: { value: new THREE.Color(0xf6f2ea) }, uBean: { value: new THREE.Color(0x5a1f1c) },
   uTint: { value: new THREE.Color(0xdff3ff) }, uShell: { value: new THREE.Color(0x1e120c) }, uBub: { value: null }, uGrid: { value: new THREE.Vector4() }, uBR: { value: new THREE.Vector2() }, uDim: { value: new THREE.Vector2() }, uCS: { value: 0.05 }, uStk: { value: new THREE.Vector2(0.016, 0.075) }, uOff: { value: Array.from({ length: 6 }, () => new THREE.Vector3()) },
 };
@@ -135,7 +135,7 @@ ITEMS.frog = {
   label: 'Frog', title: ['Milk', 'Frog.'], no: '061', sub: 'A squeaky vinyl toy.<br>Squeeze it and it squeaks, let go and it springs back.', mode: 'squeaky', recipe: RUBBER,
   hint: 'Squeeze the belly, pull an arm or a foot. It squeaks and bounces back.', handle: 'A rubber toy of the milk frog. Press it and the vinyl dents and squeaks; let go and the air rushes back in. Pinch with two fingers to squash it, pull an arm or a leg and it stretches and snaps back.',
   mass: '≈60<small>g</small>', ends: [['squishy', 'firm'], ['bouncy', 'dead']], flip: false, grab: 0.36, cam: { r: 6.6, half: 1.2, target: [0, 1.0, 0], phi: 1.4 }, press: 0.3,
-  varieties: { yellow: { name: 'Yellow', css: 'linear-gradient(#f6cf45,#e0a91c)', skin: 0xf7c834, belly: 0xf3dfa6, limb: 0x625e26 }, pink: { name: 'Pink', css: 'linear-gradient(#f8b8c6,#e98ba2)', skin: 0xf3a5b8, belly: 0xfbe4e7, limb: 0x8a4f5a },
+  varieties: { yellow: { name: 'Yellow', css: 'linear-gradient(#f6cf45,#e0a91c)', skin: 0xfad04a, belly: 0xf4ead2, limb: 0x6a6128 }, pink: { name: 'Pink', css: 'linear-gradient(#f8b8c6,#e98ba2)', skin: 0xf3a5b8, belly: 0xfbe4e7, limb: 0x8a4f5a },
     mint: { name: 'Mint', css: 'linear-gradient(#b6e6c2,#86c99a)', skin: 0xa6dbb3, belly: 0xe6f4e2, limb: 0x4e6e4a } },
   paint(v, d, geo, V) { const n = d.man.count, col = geo.attributes.color.array, glow = geo.attributes.aGlow.array, cr = d.A('a2'); for (let i = 0; i < n; i++) { col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 1; glow[i] = cr[i] / 255; } U.uSkin.value.set(V.skin); U.uBelly.value.set(V.belly); U.uLimb.value.set(V.limb); },
   matOpts: { roughness: 0.45, clearcoat: 0.35, clearcoatRoughness: 0.32 },
