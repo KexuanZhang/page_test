@@ -23,9 +23,9 @@ export const SIM = {
   },
   frog: {
     // moulded vinyl: firm and springy, holds its volume, always springs back (no plasticity); legs and feet are stiffer.
-    // A tall toy on small feet: strong resting drag so it stands instead of slowly rolling over
-    gravity: -20, hold: [6, 6, 6], strainRegion: 2, friction: 1, drag: 4, tether: { len: 1.2, k: 0.6, layers: 1.1, thread: 2, always: true },   // the feet stay planted
-    mat: (k, rd, rh) => { rd[2] = 14 * k; rh[2] = 0.15 * k ** 0.6; rd[1] = 0.015 * k; rh[1] = 0.01 * k ** 0.6; rd[0] = rd[2]; rh[0] = rh[2]; },
+    // A tall toy on small feet: light gravity (a firm vinyl toy does not sag; sagging would crease the skin) and strong resting drag
+    gravity: -5, hold: [6, 6, 6], strainRegion: 2, friction: 1, drag: 4, tether: { len: 1.2, k: 0.6, layers: 1.1, thread: 2, always: true },   // the feet stay planted
+    mat: (k, rd, rh) => { rd[2] = 8 * k; rh[2] = 0.15 * k ** 0.6; rd[1] = 0.015 * k; rh[1] = 0.01 * k ** 0.6; rd[0] = rd[2]; rh[0] = rh[2]; },
   },
   choc: {
     // a hard thin shell over a bread-like crumb: the crumb crushes and stays crushed (very little springback)
