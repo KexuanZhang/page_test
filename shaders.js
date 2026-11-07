@@ -101,7 +101,7 @@ export const RUBBER = {
   color: `
     vec3 p = vRest; float ax = abs(p.x), front = smoothstep(-0.02, 0.06, p.z) * step(0.3, vRestN.z + 0.35);
     float limb = clamp(vRegion / 255.0, 0.0, 1.0);
-    float be = pow(p.x / 0.4073, 2.0) + pow((p.y - 1.0492) / 0.2954, 2.0);
+    float be = pow(p.x / 0.3842, 2.0) + pow((p.y - 1.0492) / 0.2787, 2.0);
     float belly = (1.0 - smoothstep(0.82, 1.1, be)) * front * (1.0 - limb);         // soft, blurred edge like the reference
     vec3 skin = uSkin * mix(vec3(0.93, 0.8, 0.66), vec3(1.0, 1.04, 1.06), smoothstep(0.35, 1.75, p.y));   // lemon at the top, warm yellow-orange low down
     float chin = exp(-pow((p.y - (1.6509 - 0.075)) / 0.045, 2.0)) * exp(-pow(p.x / 0.16, 2.0)) * smoothstep(0.0, 0.12, p.z);
@@ -112,9 +112,9 @@ export const RUBBER = {
     // eyes: drawn in each eye's own plane (centre on the head surface, axis along its normal), so they stay perfect circles
     vec3 ec = vec3(0.11611, 1.74378, 0.15585), en = vec3(0.22165, 0.13581, 0.96562), eq = vec3(ax, p.y, p.z) - ec;
     float eal = dot(eq, en), ed = length(eq - en * eal), eyeF = step(-0.02, eal) * step(0.0, p.z);
-    float eye = (1.0 - smoothstep(0.05278 - 0.0025, 0.05278 + 0.0015, ed)) * eyeF, pupil = (1.0 - smoothstep(0.03209 - 0.0025, 0.03209 + 0.0015, ed)) * eyeF;
+    float eye = (1.0 - smoothstep(0.05278 - 0.0025, 0.05278 + 0.0015, ed)) * eyeF, pupil = (1.0 - smoothstep(0.02618 - 0.0025, 0.02618 + 0.0015, ed)) * eyeF;
     vec3 eside = normalize(cross(vec3(0.0, 1.0, 0.0), en)), eup = cross(en, eside);
-    float glint = (1.0 - smoothstep(0.0045, 0.0075, length(eq - en * eal - eup * 0.01348 + eside * 0.01027))) * pupil * 0.75;
+    float glint = (1.0 - smoothstep(0.0045, 0.0075, length(eq - en * eal - eup * 0.01100 + eside * 0.00838))) * pupil * 0.75;
     col = mix(col, vec3(0.15, 0.29, 0.09) * mix(0.75, 1.05, smoothstep(0.3, 0.9, ed / 0.05278)), eye);   // iris: darker at the rim
     col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.95), glint);
     float my = 1.6509 + 0.0127 * pow(p.x / 0.0739, 2.0);
