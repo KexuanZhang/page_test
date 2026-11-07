@@ -102,24 +102,28 @@ export const RUBBER = {
     vec3 p = vRest; float ax = abs(p.x), front = smoothstep(-0.02, 0.06, p.z) * step(0.3, vRestN.z + 0.35);
     float limb = clamp(vRegion / 255.0, 0.0, 1.0);
     float be = pow(p.x / 0.3842, 2.0) + pow((p.y - 1.0492) / 0.2787, 2.0);
-    float belly = (1.0 - smoothstep(0.93, 1.03, be)) * front * (1.0 - limb);
-    vec3 skin = uSkin * mix(vec3(0.97, 0.9, 0.82), vec3(1.02, 1.02, 1.0), smoothstep(0.15, 1.6, p.y));
+    float belly = (1.0 - smoothstep(0.82, 1.1, be)) * front * (1.0 - limb);         // soft, blurred edge like the reference
+    vec3 skin = uSkin * mix(vec3(0.93, 0.8, 0.66), vec3(1.0, 1.04, 1.06), smoothstep(0.35, 1.75, p.y));   // lemon at the top, warm yellow-orange low down
+    float chin = exp(-pow((p.y - (1.6509 - 0.075)) / 0.045, 2.0)) * exp(-pow(p.x / 0.16, 2.0)) * smoothstep(0.0, 0.12, p.z);
+    skin *= mix(vec3(1.0), vec3(0.93, 0.72, 0.5), chin * 0.75);                    // the warm shadow where the chin tucks in
     vec3 col = mix(skin, uBelly, belly);
-    col = mix(col, uLimb * mix(0.82, 1.04, smoothstep(0.0, 0.2, p.y)), limb);
+    vec3 olv = mix(uLimb * vec3(1.3, 1.3, 1.25), uLimb, smoothstep(0.12, 0.3, p.y));   // feet a lighter khaki, hands darker
+    col = mix(col, olv, limb);
     float ed = length(vec2(ax - 0.1161, p.y - 1.7438)), eyeF = step(0.0, p.z) * smoothstep(0.0, 0.08, p.z);
     float eye = (1.0 - smoothstep(0.0570 - 0.003, 0.0570 + 0.002, ed)) * eyeF, pupil = (1.0 - smoothstep(0.0338 - 0.003, 0.0338 + 0.002, ed)) * eyeF;
-    float glint = (1.0 - smoothstep(0.004, 0.007, length(vec2(ax - 0.1161 + sign(p.x) * 0.0 + 0.008, p.y - 1.7438 - 0.009)))) * pupil;
-    col = mix(col, vec3(0.36, 0.54, 0.22), eye); col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.95), glint);
+    float glint = (1.0 - smoothstep(0.004, 0.007, length(vec2(ax - 0.1161 + 0.009, p.y - 1.7438 - 0.011)))) * pupil * 0.7;
+    col = mix(col, vec3(0.27, 0.45, 0.17) * mix(0.7, 1.05, smoothstep(0.3, 0.9, ed / 0.0570)), eye);   // iris: darker at the rim
+    col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.95), glint);
     float my = 1.6509 + 0.0127 * pow(p.x / 0.0739, 2.0);
     float mouth = (1.0 - smoothstep(0.0028, 0.0055, abs(p.y - my))) * step(0.05, p.z) * (1.0 - smoothstep(0.0739 - 0.01, 0.0739, ax));
     col = mix(col, vec3(0.14, 0.08, 0.03), mouth);
-    col *= 1.0 - 0.55 * vGlow;
+    col *= 1.0 - 0.3 * vGlow;
     diffuseColor.rgb = col;`,
-  rough: `roughnessFactor = mix(mix(0.48, 0.6, limb), 0.12, eye);`,
+  rough: `roughnessFactor = mix(mix(0.62, 0.7, limb), mix(0.35, 0.1, pupil), eye);`,             // matte velvety vinyl, glossy eyes
   normal: ``,
   emissive: `float nv = clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0);
-    totalEmissiveRadiance += diffuseColor.rgb * (0.06 + 0.1 * pow(1.0 - nv, 2.0)) * (1.0 - 0.6 * limb) * (1.0 - eye) * (1.0 - vGlow);`,
-  clearcoat: `material.clearcoat = mix(0.25, 0.9, eye); material.clearcoatRoughness = mix(0.4, 0.06, eye);`,
+    totalEmissiveRadiance += (diffuseColor.rgb * 0.08 + vec3(0.09, 0.04, 0.0) * pow(1.0 - nv, 1.5)) * (1.0 - 0.6 * limb) * (1.0 - eye);   // soft light through the vinyl`,
+  clearcoat: `material.clearcoat = mix(0.05, mix(0.5, 1.0, pupil), eye); material.clearcoatRoughness = mix(0.6, 0.05, eye);`,
 };
 
 // ---- mochi: soft white rice dough with a glossy, slightly sticky skin; the bean paste is matte, dusty and sandy ----
