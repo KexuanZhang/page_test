@@ -109,13 +109,16 @@ export const RUBBER = {
     vec3 col = mix(skin, uBelly, belly);
     vec3 olv = mix(uLimb * vec3(1.3, 1.3, 1.25), uLimb, smoothstep(0.12, 0.3, p.y));   // feet a lighter khaki, hands darker
     col = mix(col, olv, limb);
-    float ed = length(vec2(ax - 0.1161, p.y - 1.7438)), eyeF = step(0.0, p.z) * smoothstep(0.0, 0.08, p.z);
-    float eye = (1.0 - smoothstep(0.0570 - 0.003, 0.0570 + 0.002, ed)) * eyeF, pupil = (1.0 - smoothstep(0.0338 - 0.003, 0.0338 + 0.002, ed)) * eyeF;
-    float glint = (1.0 - smoothstep(0.004, 0.007, length(vec2(ax - 0.1161 + 0.009, p.y - 1.7438 - 0.011)))) * pupil * 0.7;
-    col = mix(col, vec3(0.27, 0.45, 0.17) * mix(0.7, 1.05, smoothstep(0.3, 0.9, ed / 0.0570)), eye);   // iris: darker at the rim
+    // eyes: drawn in each eye's own plane (centre on the head surface, axis along its normal), so they stay perfect circles
+    vec3 ec = vec3(0.11611, 1.74378, 0.15585), en = vec3(0.22165, 0.13581, 0.96562), eq = vec3(ax, p.y, p.z) - ec;
+    float eal = dot(eq, en), ed = length(eq - en * eal), eyeF = step(-0.02, eal) * step(0.0, p.z);
+    float eye = (1.0 - smoothstep(0.05278 - 0.0025, 0.05278 + 0.0015, ed)) * eyeF, pupil = (1.0 - smoothstep(0.03209 - 0.0025, 0.03209 + 0.0015, ed)) * eyeF;
+    vec3 eside = normalize(cross(vec3(0.0, 1.0, 0.0), en)), eup = cross(en, eside);
+    float glint = (1.0 - smoothstep(0.0045, 0.0075, length(eq - en * eal - eup * 0.01348 + eside * 0.01027))) * pupil * 0.75;
+    col = mix(col, vec3(0.15, 0.29, 0.09) * mix(0.75, 1.05, smoothstep(0.3, 0.9, ed / 0.05278)), eye);   // iris: darker at the rim
     col = mix(col, vec3(0.02), pupil); col = mix(col, vec3(0.95), glint);
     float my = 1.6509 + 0.0127 * pow(p.x / 0.0739, 2.0);
-    float mouth = (1.0 - smoothstep(0.0028, 0.0055, abs(p.y - my))) * step(0.05, p.z) * (1.0 - smoothstep(0.0739 - 0.01, 0.0739, ax));
+    float mouth = (1.0 - smoothstep(0.0035, 0.0068, abs(p.y - my))) * step(0.05, p.z) * (1.0 - smoothstep(0.0739 - 0.01, 0.0739, ax));
     col = mix(col, vec3(0.14, 0.08, 0.03), mouth);
     col *= 1.0 - 0.3 * vGlow;
     diffuseColor.rgb = col;`,
@@ -123,7 +126,11 @@ export const RUBBER = {
   normal: ``,
   emissive: `float nv = clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0);
     totalEmissiveRadiance += (diffuseColor.rgb * 0.08 + vec3(0.09, 0.04, 0.0) * pow(1.0 - nv, 1.5)) * (1.0 - 0.6 * limb) * (1.0 - eye);   // soft light through the vinyl`,
-  clearcoat: `material.clearcoat = mix(0.05, mix(0.5, 1.0, pupil), eye); material.clearcoatRoughness = mix(0.6, 0.05, eye);`,
+  clearcoat: `
+#ifdef USE_SHEEN
+    material.sheenColor *= 1.0 - eye;
+#endif
+    material.clearcoat = mix(0.05, mix(0.5, 1.0, pupil), eye); material.clearcoatRoughness = mix(0.6, 0.05, eye);`,
 };
 
 // ---- mochi: soft white rice dough with a glossy, slightly sticky skin; the bean paste is matte, dusty and sandy ----
