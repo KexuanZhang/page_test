@@ -101,7 +101,7 @@ export const RUBBER = {
   color: `
     vec3 p = vRest; float ax = abs(p.x), front = smoothstep(-0.02, 0.06, p.z) * step(0.3, vRestN.z + 0.35);
     float limb = clamp(vRegion / 255.0, 0.0, 1.0);
-    float be = pow(p.x / 0.3842, 2.0) + pow((p.y - 1.0492) / 0.2787, 2.0);
+    float be = pow(p.x / 0.4073, 2.0) + pow((p.y - 1.0492) / 0.2954, 2.0);
     float belly = (1.0 - smoothstep(0.82, 1.1, be)) * front * (1.0 - limb);         // soft, blurred edge like the reference
     vec3 skin = uSkin * mix(vec3(0.93, 0.8, 0.66), vec3(1.0, 1.04, 1.06), smoothstep(0.35, 1.75, p.y));   // lemon at the top, warm yellow-orange low down
     float chin = exp(-pow((p.y - (1.6509 - 0.075)) / 0.045, 2.0)) * exp(-pow(p.x / 0.16, 2.0)) * smoothstep(0.0, 0.12, p.z);
